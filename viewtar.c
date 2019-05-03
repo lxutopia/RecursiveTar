@@ -29,7 +29,7 @@ struct posix_header
   char devmajor[8];             /* 329 */
   char devminor[8];             /* 337 */
   char prefix[155];             /* 345 */
-  char fullName[255];             /* 500 */
+  char fullName[2048];             /* 500 */
 };
 
 long octalToDecimal(char* octal, int size) {
@@ -44,7 +44,7 @@ long octalToDecimal(char* octal, int size) {
     return result;
 }
 
-void fillStruct(char *header, struct posix_header *pHeader) {
+void fillStruct(char *header, struct posix_header *pHeader, char *storedName, int storedNameSize) {
     int offset = 0;
     if (header[0] == '.' && header[1] == '/')
         offset = 2;
@@ -66,14 +66,19 @@ void fillStruct(char *header, struct posix_header *pHeader) {
     strncpy(pHeader->devmajor, header+329, 8);
     strncpy(pHeader->devminor, header+337, 8);
     strncpy(pHeader->prefix, header+345, 155);
-    int offset2 = 0;
-    if (strlen(pHeader->prefix) > 0) {
-        offset2 = strlen(pHeader->prefix);
-        strncpy(pHeader->fullName, header+345, offset2);
-        strcpy(pHeader->fullName+offset2, "/");
-        offset2+=1;
+    if (storedNameSize > 0) {
+      strncpy(pHeader->fullName, storedName, storedNameSize);
+    } else {
+      int offset2 = 0;
+      if (strlen(pHeader->prefix) > 0) {
+          offset2 = strlen(pHeader->prefix);
+          strncpy(pHeader->fullName, header+345, offset2);
+          strcpy(pHeader->fullName+offset2, "/");
+          offset2+=1;
+      }
+      strncpy(pHeader->fullName+offset2, header+offset, strlen(pHeader->name));
     }
-    strncpy(pHeader->fullName+offset2, header+offset, strlen(pHeader->name));
+
 }
 
 void printStruct(struct posix_header *header) {
@@ -93,7 +98,7 @@ void printStruct(struct posix_header *header) {
     printf("gname: %.32s\n", header->gname);
     printf("devmajor: %.8s\n", header->devmajor);
     printf("devminor: %.8s\n", header->devminor);
-    printf("prefix: %.155s\n\n", header->prefix);
+    printf("prefix: %.2048s\n\n", header->prefix);
 }
 
 long roundUp(long num) {
@@ -150,6 +155,9 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
     char header[512];
     size_t result;
 
+    char storedName[2048];
+    size_t storedNameSize = 0;
+
     //read files
     struct posix_header fileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
@@ -165,7 +173,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
         if (!empty) {
             numberOfEmpty = 0;
             fileHeader = (struct posix_header){ 0 };
-            fillStruct(header, &fileHeader);
+            fillStruct(header, &fileHeader, storedName, storedNameSize);
             // printStruct(&fileHeader);
             if (fileHeader.typeflag == '0') {
                 //calculate filelength
@@ -226,7 +234,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 //read huge file header
                 result = fread (header,1,512,fp);
                 fileHeader = (struct posix_header){ 0 };
-                fillStruct(header, &fileHeader);
+                fillStruct(header, &fileHeader, storedName, storedNameSize);
 
                 char *indent = malloc(indentation*4);
                 memset(indent, ' ', indentation*4);
@@ -264,8 +272,15 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                     // }
                     // printf("%d ", (int)header[i]);
                 // }
+            } else if (fileHeader.typeflag == 'L') {
+                // printStruct(&fileHeader);
+                // read next block and check it's content
+                storedNameSize = octalToDecimal(fileHeader.size, 12);
+                int rest = 512 - (storedNameSize % 512);
+                result = fread (storedName,1,storedNameSize,fp);
+                fseek(fp, rest, SEEK_CUR);
             } else {
-                printf("unknown flag: %hhd\n", fileHeader.typeflag);
+              printf("unknown flag: %c\n", fileHeader.typeflag);
             }
         } else {
             numberOfEmpty++;
@@ -276,6 +291,8 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
 void parseTarForPath(FILE *fp, char path[]) {
     //for checking for end of tar
     int numberOfEmpty = 0;
+        char storedName[2048];
+        size_t storedNameSize = 0;
 
     char header[512];
     size_t result;
@@ -295,7 +312,7 @@ void parseTarForPath(FILE *fp, char path[]) {
         if (!empty) {
             numberOfEmpty = 0;
             fileHeader = (struct posix_header){ 0 };
-            fillStruct(header, &fileHeader);
+            fillStruct(header, &fileHeader, storedName, storedNameSize);
             // printf("%s\n", path);
             // printf("filename: %s\n", fileHeader.name);
             if (fileHeader.typeflag == '0') {
@@ -361,7 +378,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                 //read huge file header
                 result = fread (header,1,512,fp);
                 fileHeader = (struct posix_header){ 0 };
-                fillStruct(header, &fileHeader);
+                fillStruct(header, &fileHeader, storedName, storedNameSize);
                 int correctPath = 1;
                 for (int i = 0; i < strlen(fileHeader.fullName); i++) {
                     //for security check if fileHeader.name is longer than path.
@@ -400,6 +417,15 @@ void parseTarForPath(FILE *fp, char path[]) {
                 } else {
                     fseek(fp, jump, SEEK_CUR);
                 }
+            } else if (fileHeader.typeflag == 'L') {
+                // printStruct(&fileHeader);
+                // read next block and check it's content
+                storedNameSize = octalToDecimal(fileHeader.size, 12);
+                int rest = 512 - (storedNameSize % 512);
+                result = fread (storedName,1,storedNameSize,fp);
+                fseek(fp, rest, SEEK_CUR);
+            } else {
+              printf("unknown flag: %c\n", fileHeader.typeflag);
             }
         } else {
             // printf("empty!\n" );
