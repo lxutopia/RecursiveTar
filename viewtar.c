@@ -1,15 +1,14 @@
 /*
 Created by Simon Nilsson, Axenu for Sydarkivera 2017
 simon@axenu.com simon.nilsson@sydarkivera.se
+
+Modifications by Lexx Damm, Sydarkivera 2024
+lexx.damm@sydarkivera.se
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-//14:40
-
-//to tar a folder:
-//tar cvf archive.tar ./archive
 
 struct posix_header
 {                              /* byte offset */
@@ -33,7 +32,6 @@ struct posix_header
 };
 
 long octalToDecimal(char* octal, int size) {
-    // printf("octal number: %.12s", octal);
     long result = 0;
     long potens = 1;
     for (int i = size-2; i >= 0; i--) {
@@ -161,7 +159,6 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
     //read files
     struct posix_header fileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
-      // printf("start\n" );
         result = fread (header,1,512,fp);
         //test if header consists of 0 only. if two zero block occure, end the file reading.
         int empty = 1;
@@ -176,8 +173,6 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
             fileHeader = (struct posix_header){ 0 };
             fillStruct(header, &fileHeader, storedName, storedNameSize);
             storedNameSize = 0;
-            // printStruct(&fileHeader);
-            // printStruct(&fileHeader);
             if (fileHeader.typeflag == '0') {
                 //calculate filelength
                 long jump = roundUp(octalToDecimal(fileHeader.size, 12));
@@ -209,28 +204,12 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 memset(indent, ' ', indentation*4);
                 printf("%s%s%s\n", indent, pPath, fileHeader.fullName);
             } else if (fileHeader.typeflag == 'x') {
-                // char *indent = malloc(indentation*4);
-                // memset(indent, ' ', indentation*4);
-                // printf("%s%s%s\n", indent, pPath, fileHeader.fullName);
-                // printf("length: %ld\n", octalToDecimal(fileHeader.size));
-                // printf("length: %s\n", fileHeader.size);
                 long extendedHeaderLength = roundUp(octalToDecimal(fileHeader.size, 12));
                 char *extendedHeader = malloc(extendedHeaderLength);
                 fread(extendedHeader, 1, extendedHeaderLength, fp);
 
                 //get size from extended header
                 long size = getSizeFromExtendedHeader(extendedHeader, extendedHeaderLength);
-
-
-                // printf("%*.*s\n", 512, 512, extendedHeader);
-                // for (int i = 0; i < 512; i++) {
-                //     printf("%c ", header[i]);
-                // }
-
-                // printf("\nextendedHeader: \n");
-                // for (int i = 0; i < extendedHeaderLength; i++) {
-                //     printf(" \"%c\" ", extendedHeader[i]);
-                // }
 
                 printf("\n NEXT HEADER: \n");
                 long jump2 = roundUp(size);
@@ -265,20 +244,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                     if (jump2 > 0)
                         fseek(fp, jump2, SEEK_CUR);
                 }
-
-                // for (int i = 0; i < 512; i++) {
-                //     printf("%c ", header[i]);
-                // }
-                // printf("\nend\n");
-                // fseek(fp, jump2, SEEK_CUR);
-                // for (int i = 0; i < 512; i++) {
-                    // if (header[i] == '\0') {
-                    //     printf("split space ");
-                    // }
-                    // printf("%d ", (int)header[i]);
-                // }
             } else if (fileHeader.typeflag == 'L') {
-                // printStruct(&fileHeader);
                 // read next block and check it's content
                 storedNameSize = octalToDecimal(fileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
@@ -321,8 +287,6 @@ void parseTarForPath(FILE *fp, char path[]) {
             fileHeader = (struct posix_header){ 0 };
             fillStruct(header, &fileHeader, storedName, storedNameSize);
             storedNameSize = 0;
-            // printf("%s\n", path);
-            // printf("filename: %s\n", fileHeader.name);
             if (fileHeader.typeflag == '0') {
                 //calculate filelength
                 long jump = octalToDecimal(fileHeader.size, 12);
@@ -372,9 +336,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                     fseek(fp, jump, SEEK_CUR);
                 }
             } else if (fileHeader.typeflag == '5') {
-                // char *indent = malloc(indentation*4);
-                // memset(indent, ' ', indentation*4);
-                // printf("%s%s\n", indent, fileHeader.name);
+                // TODO: handle flag or remove
             } else if (fileHeader.typeflag == 'x') {
                 long extendedHeaderLength = roundUp(octalToDecimal(fileHeader.size, 12));
                 char *extendedHeader = malloc(extendedHeaderLength);
@@ -405,14 +367,10 @@ void parseTarForPath(FILE *fp, char path[]) {
                         size_t pathn = strlen(fileHeader.fullName);
                         char *newpath = malloc(pathl - pathn);
                         memset(newpath, '\0', pathl - pathn);
-                        // memcpy(newpath, "./", 2);
                         strncpy(newpath, path + pathn + 1, pathl - pathn - 1);
-                        // printf("%s\n", newpath);
                         parseTarForPath(fp, newpath);
 
                     } else { //the requested file is found, print the result:
-                        // printf("fileHeader:\n");
-                        // printStruct(&fileHeader);
                         //print first block //TODO print all, based on size
                         while (jump > 0) {
                             result = fread (header,1,512,fp);
@@ -427,7 +385,6 @@ void parseTarForPath(FILE *fp, char path[]) {
                     fseek(fp, jump, SEEK_CUR);
                 }
             } else if (fileHeader.typeflag == 'L') {
-                // printStruct(&fileHeader);
                 // read next block and check it's content
                 storedNameSize = octalToDecimal(fileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
@@ -437,7 +394,6 @@ void parseTarForPath(FILE *fp, char path[]) {
               printf("unknown flag: %c\n", fileHeader.typeflag);
             }
         } else {
-            // printf("empty!\n" );
             numberOfEmpty++;
         }
     }
@@ -466,10 +422,7 @@ int main(int argc, char* argv[]) {
 
         //change inputpath to format ./archive/a.txt
         char *path = malloc(strlen(argv[2]));
-        // char inputpath[] = "./";
-        // strcat(path, "./");
         strcat(path, argv[2]);
-        // printf("Path: %s\n", path);
 
         //search for file
         parseTarForPath(fp, path);
