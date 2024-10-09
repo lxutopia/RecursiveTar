@@ -2,7 +2,7 @@
 Created by Simon Nilsson, Axenu for Sydarkivera 2017
 simon@axenu.com simon.nilsson@sydarkivera.se
 
-Modifications by Lexx Damm, Sydarkivera 2024
+Cleanup by Lexx Damm, Sydarkivera 2024
 lexx.damm@sydarkivera.se
 */
 #include <stdio.h>
