@@ -151,7 +151,6 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
     int numberOfEmpty = 0;
 
     char header[512];
-    size_t result;
 
     char storedName[2048];
     size_t storedNameSize = 0;
@@ -159,7 +158,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
     //read files
     struct posix_header fileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
-        result = fread (header,1,512,fp);
+        fread (header,1,512,fp);
         //test if header consists of 0 only. if two zero block occure, end the file reading.
         int empty = 1;
         for (int i = 0; i < 512; i++) {
@@ -214,7 +213,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 printf("\n NEXT HEADER: \n");
                 long jump2 = roundUp(size);
                 //read huge file header
-                result = fread (header,1,512,fp);
+                fread (header,1,512,fp);
                 fileHeader = (struct posix_header){ 0 };
                 fillStruct(header, &fileHeader, storedName, storedNameSize);
                 storedNameSize = 0;
@@ -248,7 +247,7 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 // read next block and check it's content
                 storedNameSize = octalToDecimal(fileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
-                result = fread (storedName,1,storedNameSize,fp);
+                fread (storedName,1,storedNameSize,fp);
                 fseek(fp, rest, SEEK_CUR);
             } else {
               printf("unknown flag: %c , %hhd\n", fileHeader.typeflag,fileHeader.typeflag);
@@ -268,12 +267,11 @@ void parseTarForPath(FILE *fp, char path[]) {
         size_t storedNameSize = 0;
 
     char header[512];
-    size_t result;
 
     //read files
     struct posix_header fileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
-        result = fread (header,1,512,fp);
+        fread (header,1,512,fp);
         //test if header consists of 0 only. if two zero blocks occure, end the file reading.
         int empty = 1;
         for (int i = 0; i < 512; i++) {
@@ -320,12 +318,12 @@ void parseTarForPath(FILE *fp, char path[]) {
                         long fileSize = octalToDecimal(fileHeader.size, 12);
                         jump -= fileSize;
                         while (fileSize > 512) {
-                            result = fread (header,1,512,fp);
+                            fread (header,1,512,fp);
                             fwrite(header, 1, 512, stdout);
                             fileSize -= 512;
                         }
                         if (fileSize > 0) {
-                            result = fread (header,1,fileSize,fp);
+                            fread (header,1,fileSize,fp);
                             fwrite(header, 1, fileSize, stdout);
                             fileSize = 0;
                         }
@@ -346,7 +344,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                 long size = getSizeFromExtendedHeader(extendedHeader, extendedHeaderLength);
                 long jump = roundUp(size);
                 //read huge file header
-                result = fread (header,1,512,fp);
+                fread (header,1,512,fp);
                 fileHeader = (struct posix_header){ 0 };
                 fillStruct(header, &fileHeader, storedName, storedNameSize);
                 storedNameSize = 0;
@@ -373,7 +371,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                     } else { //the requested file is found, print the result:
                         //print first block //TODO print all, based on size
                         while (jump > 0) {
-                            result = fread (header,1,512,fp);
+                            fread (header,1,512,fp);
                             printf("%.512s", header);
                             jump -= 512;
                         }
@@ -388,7 +386,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                 // read next block and check it's content
                 storedNameSize = octalToDecimal(fileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
-                result = fread (storedName,1,storedNameSize,fp);
+                fread (storedName,1,storedNameSize,fp);
                 fseek(fp, rest, SEEK_CUR);
             } else {
               printf("unknown flag: %c\n", fileHeader.typeflag);
