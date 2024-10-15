@@ -146,16 +146,16 @@ long getSizeFromExtendedHeader(char *header, int length) {
     return -1;
 }
 
-void printPath(unsigned int indentation, char *pPath, char *fullName) {
+void printPath(unsigned int indentation, char *pathPtr, char *fullName) {
     if (indentation) {
         // Indent the file list:
         char *indentStrPtr = (char *) malloc(indentation * 4);
         memset(indentStrPtr, ' ', indentation * 4);
-        printf("%s%s%s\n", indentStrPtr, pPath, fullName);
+        printf("%s%s%s\n", indentStrPtr, pathPtr, fullName);
         free(indentStrPtr);
     } else {
         // Do not indent the file list
-        printf("%s%s\n", pPath, fullName);
+        printf("%s%s\n", pathPtr, fullName);
     }
 }
 
