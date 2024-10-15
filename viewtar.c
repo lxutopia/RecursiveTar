@@ -419,7 +419,8 @@ int main(int argc, char* argv[]) {
     } else if (argc == 3) { //search for file in tar archive(s)
 
         //change inputpath to format ./archive/a.txt
-        char *path = strdup(argv[2]);
+        char *path = (char *) malloc(strlen(argv[2]) + 1);
+        strcpy(path, argv[2]);
 
         //search for file
         parseTarForPath(fp, path);
