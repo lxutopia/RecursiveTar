@@ -146,7 +146,7 @@ long getSizeFromExtendedHeader(char *pHeader, int length) {
 }
 
 void listTarFile(FILE *fp, int indentation, char *pPath) {
-    //for checking for end of tar
+    // For checking for end of tar
     int numberOfEmpty = 0;
 
     char header[512];
@@ -154,11 +154,11 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
     char storedName[2048];
     size_t storedNameSize = 0;
 
-    //read files
-    struct posix_header fileHeader;
+    // Read files
+    struct posix_header posixFileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
         fread (header,1,512,fp);
-        //test if header consists of 0 only. if two zero block occure, end the file reading.
+        // Test if header consists of 0 only. if two zero block occure, end the file reading.
         int empty = 1;
         for (int i = 0; i < 512; i++) {
             if (header[i] != 0) {
@@ -168,27 +168,27 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
         }
         if (!empty) {
             numberOfEmpty = 0;
-            fileHeader = (struct posix_header){ 0 };
-            fillStruct(header, &fileHeader, storedName, storedNameSize);
+            posixFileHeader = (struct posix_header) { 0 };
+            fillStruct(header, &posixFileHeader, storedName, storedNameSize);
             storedNameSize = 0;
-            if (fileHeader.typeflag == '0') {
+            if (posixFileHeader.typeflag == '0') {
                 //calculate filelength
-                long jump = roundUp(octalToDecimal(fileHeader.size, 12));
+                long jump = roundUp(octalToDecimal(posixFileHeader.size, 12));
                 //indent the file list:
                 char *indent = malloc(indentation*4);
                 memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, fileHeader.fullName);
+                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
                 //if file ends with .tar -> list files inside it
-                char *dot = strrchr(fileHeader.name, '.');
+                char *dot = strrchr(posixFileHeader.name, '.');
                 if (dot && !strcmp(dot, ".tar")) {
                     //get the current position to return to after the inner tar file is read
                     long pos = ftell(fp);
                     //calculate next path
-                    char *nextPPath = malloc(strlen(pPath) + strlen(fileHeader.fullName) + 1);
+                    char *nextPPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
 
                     strncpy(nextPPath, pPath, strlen(pPath));
-                    strncpy(nextPPath+strlen(pPath), fileHeader.fullName, strlen(fileHeader.fullName));
-                    strcpy(nextPPath+strlen(pPath)+strlen(fileHeader.fullName), "/");
+                    strncpy(nextPPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
+                    strcpy(nextPPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
                     listTarFile(fp, indentation+1, nextPPath);
                     fseek(fp, pos+jump, SEEK_SET);
                     free(nextPPath);
@@ -197,12 +197,12 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                     if (jump > 0)
                         fseek(fp, jump, SEEK_CUR);
                 }
-            } else if (fileHeader.typeflag == '5') {
+            } else if (posixFileHeader.typeflag == '5') {
                 char *indent = malloc(indentation*4);
                 memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, fileHeader.fullName);
-            } else if (fileHeader.typeflag == 'x') {
-                long extendedHeaderLength = roundUp(octalToDecimal(fileHeader.size, 12));
+                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
+            } else if (posixFileHeader.typeflag == 'x') {
+                long extendedHeaderLength = roundUp(octalToDecimal(posixFileHeader.size, 12));
                 char *extendedHeader = malloc(extendedHeaderLength);
                 fread(extendedHeader, 1, extendedHeaderLength, fp);
 
@@ -213,27 +213,27 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 long jump2 = roundUp(size);
                 //read huge file header
                 fread (header,1,512,fp);
-                fileHeader = (struct posix_header){ 0 };
-                fillStruct(header, &fileHeader, storedName, storedNameSize);
+                posixFileHeader = (struct posix_header){ 0 };
+                fillStruct(header, &posixFileHeader, storedName, storedNameSize);
                 storedNameSize = 0;
-                printStruct(&fileHeader);
+                printStruct(&posixFileHeader);
 
                 char *indent = malloc(indentation*4);
                 memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, fileHeader.fullName);
+                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
 
-                //case file
-                //if file ends with .tar -> list files inside it
-                char *dot = strrchr(fileHeader.name, '.');
+                // Case file
+                // If file ends with .tar -> list files inside it
+                char *dot = strrchr(posixFileHeader.name, '.');
                 if (dot && !strcmp(dot, ".tar")) {
-                    //odd hack with seeking, slows down a little but works.
+                    // Odd hack with seeking, slows down a little but works.
                     long pos = ftell(fp);
-                    //calculate next ppath
-                    char *nextPPath = malloc(strlen(pPath) + strlen(fileHeader.fullName) + 1);
+                    // Calculate next ppath
+                    char *nextPPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
 
                     strncpy(nextPPath, pPath, strlen(pPath));
-                    strncpy(nextPPath+strlen(pPath), fileHeader.fullName, strlen(fileHeader.fullName));
-                    strcpy(nextPPath+strlen(pPath)+strlen(fileHeader.fullName), "/");
+                    strncpy(nextPPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
+                    strcpy(nextPPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
                     listTarFile(fp, indentation+1, nextPPath);
                     fseek(fp, pos+jump2, SEEK_SET);
                     free(nextPPath);
@@ -242,15 +242,15 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                     if (jump2 > 0)
                         fseek(fp, jump2, SEEK_CUR);
                 }
-            } else if (fileHeader.typeflag == 'L') {
-                // read next block and check it's content
-                storedNameSize = octalToDecimal(fileHeader.size, 12);
+            } else if (posixFileHeader.typeflag == 'L') {
+                // Read next block and check it's content
+                storedNameSize = octalToDecimal(posixFileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
-                fread (storedName,1,storedNameSize,fp);
+                fread(storedName,1,storedNameSize,fp);
                 fseek(fp, rest, SEEK_CUR);
             } else {
-              printf("unknown flag: %c , %hhd\n", fileHeader.typeflag,fileHeader.typeflag);
-              printStruct(&fileHeader);
+              printf("unknown flag: %c , %hhd\n", posixFileHeader.typeflag,posixFileHeader.typeflag);
+              printStruct(&posixFileHeader);
               exit(-1);
             }
         } else {
