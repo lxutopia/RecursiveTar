@@ -78,24 +78,24 @@ void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredN
     }
 }
 
-void printStruct(struct posix_header *header) {
-    printf("name: %.100s\n", header->name);
-    printf("mode: %.8s\n", header->mode);
-    printf("uid: %.8s\n", header->uid);
-    printf("gid: %.8s\n", header->gid);
-    printf("size: %.12s\n", header->size);
-    printf("size: %li\n", octalToDecimal(header->size, 12));
-    printf("mtime: %.12s\n", header->mtime);
-    printf("chksum: %.8s\n", header->chksum);
-    printf("typeflag: %c\n", header->typeflag);
-    printf("linkname: %.100s\n", header->linkname);
-    printf("magic: %.6s\n", header->magic);
-    printf("version: %.2s\n", header->version);
-    printf("uname: %.32s\n", header->uname);
-    printf("gname: %.32s\n", header->gname);
-    printf("devmajor: %.8s\n", header->devmajor);
-    printf("devminor: %.8s\n", header->devminor);
-    printf("prefix: %.2048s\n\n", header->prefix);
+void printStruct(struct posix_header *pPosixHeader) {
+    printf("name: %.100s\n", pPosixHeader->name);
+    printf("mode: %.8s\n", pPosixHeader->mode);
+    printf("uid: %.8s\n", pPosixHeader->uid);
+    printf("gid: %.8s\n", pPosixHeader->gid);
+    printf("size: %.12s\n", pPosixHeader->size);
+    printf("size: %li\n", octalToDecimal(pPosixHeader->size, 12));
+    printf("mtime: %.12s\n", pPosixHeader->mtime);
+    printf("chksum: %.8s\n", pPosixHeader->chksum);
+    printf("typeflag: %c\n", pPosixHeader->typeflag);
+    printf("linkname: %.100s\n", pPosixHeader->linkname);
+    printf("magic: %.6s\n", pPosixHeader->magic);
+    printf("version: %.2s\n", pPosixHeader->version);
+    printf("uname: %.32s\n", pPosixHeader->uname);
+    printf("gname: %.32s\n", pPosixHeader->gname);
+    printf("devmajor: %.8s\n", pPosixHeader->devmajor);
+    printf("devminor: %.8s\n", pPosixHeader->devminor);
+    printf("prefix: %.2048s\n\n", pPosixHeader->prefix);
 }
 
 long roundUp(long num) {
