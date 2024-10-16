@@ -31,11 +31,11 @@ struct posix_header
   char fullName[2048];             /* 500 */
 };
 
-long octalToDecimal(char* octal, int size) {
+long octalToDecimal(char *pOctal, int size) {
     long result = 0;
     long potens = 1;
     for (int i = size-2; i >= 0; i--) {
-        long iVal = (octal[i] - '0');
+        long iVal = (pOctal[i] - '0');
         result += iVal * potens;
         potens *= 8;
     }
