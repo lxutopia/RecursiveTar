@@ -42,41 +42,40 @@ long octalToDecimal(char *pOctal, int size) {
     return result;
 }
 
-void fillStruct(char *header, struct posix_header *pHeader, char *storedName, int storedNameSize) {
+void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredName, int storedNameSize) {
     int offset = 0;
-    if (header[0] == '.' && header[1] == '/')
+    if (pPosixHeader[0] == '.' && pHeader[1] == '/')
         offset = 2;
-    else if (header[0] == '/')
+    else if (pHeader[0] == '/')
         offset = 1;
-    strncpy(pHeader->name, header+offset, 100);
-    strncpy(pHeader->mode, header+100, 8);
-    strncpy(pHeader->uid, header+108, 8);
-    strncpy(pHeader->gid, header+116, 8);
-    strncpy(pHeader->size, header+124, 12);
-    strncpy(pHeader->mtime, header+136, 12);
-    strncpy(pHeader->chksum, header+148, 8);
-    pHeader->typeflag = header[156];
-    strncpy(pHeader->linkname, header+157, 100);
-    strncpy(pHeader->magic, header+257, 6);
-    strncpy(pHeader->version, header+263, 2);
-    strncpy(pHeader->uname, header+265, 32);
-    strncpy(pHeader->gname, header+297, 32);
-    strncpy(pHeader->devmajor, header+329, 8);
-    strncpy(pHeader->devminor, header+337, 8);
-    strncpy(pHeader->prefix, header+345, 155);
+    strncpy(pPosixHeader->name, pHeader + offset, 100);
+    strncpy(pPosixHeader->mode, pHeader + 100, 8);
+    strncpy(pPosixHeader->uid, pHeader + 108, 8);
+    strncpy(pPosixHeader->gid, pHeader + 116, 8);
+    strncpy(pPosixHeader->size, pHeader + 124, 12);
+    strncpy(pPosixHeader->mtime, pHeader + 136, 12);
+    strncpy(pPosixHeader->chksum, pHeader + 148, 8);
+    pPosixHeader->typeflag = pHeader[156];
+    strncpy(pPosixHeader->linkname, pHeader + 157, 100);
+    strncpy(pPosixHeader->magic, pHeader + 257, 6);
+    strncpy(pPosixHeader->version, pHeader + 263, 2);
+    strncpy(pPosixHeader->uname, pHeader + 265, 32);
+    strncpy(pPosixHeader->gname, pHeader + 297, 32);
+    strncpy(pPosixHeader->devmajor, pHeader + 329, 8);
+    strncpy(pPosixHeader->devminor, pHeader + 337, 8);
+    strncpy(pPosixHeader->prefix, pHeader + 345, 155);
     if (storedNameSize > 0) {
-      strncpy(pHeader->fullName, storedName, storedNameSize);
+      strncpy(pPosixHeader->fullName, storedName, storedNameSize);
     } else {
       int offset2 = 0;
-      if (strlen(pHeader->prefix) > 0) {
-          offset2 = strlen(pHeader->prefix);
-          strncpy(pHeader->fullName, header+345, offset2);
-          strcpy(pHeader->fullName+offset2, "/");
+      if (strlen(pPosixHeader->prefix) > 0) {
+          offset2 = strlen(pPosixHeader->prefix);
+          strncpy(pPosixHeader->fullName, pHeader + 345, offset2);
+          strcpy(pPosixHeader->fullName+offset2, "/");
           offset2+=1;
       }
-      strncpy(pHeader->fullName+offset2, header+offset, strlen(pHeader->name));
+      strncpy(pPosixHeader->fullName+offset2, pHeader + offset, strlen(pHeader->name));
     }
-
 }
 
 void printStruct(struct posix_header *header) {
