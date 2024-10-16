@@ -71,10 +71,10 @@ void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredN
       if (strlen(pPosixHeader->prefix) > 0) {
           offset2 = strlen(pPosixHeader->prefix);
           strncpy(pPosixHeader->fullName, pHeader + 345, offset2);
-          strcpy(pPosixHeader->fullName+offset2, "/");
-          offset2+=1;
+          strcpy(pPosixHeader->fullName + offset2, "/");
+          offset2 += 1;
       }
-      strncpy(pPosixHeader->fullName+offset2, pHeader + offset, strlen(pHeader->name));
+      strncpy(pPosixHeader->fullName + offset2, pHeader + offset, strlen(pHeader->name));
     }
 }
 
