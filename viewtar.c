@@ -203,11 +203,11 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 printf("%s%s%s\n", pIndentStr, pPath, posixFileHeader.fullName);
             } else if (posixFileHeader.typeflag == 'x') {
                 long extendedHeaderLength = roundUp(octalToDecimal(posixFileHeader.size, 12));
-                char *extendedHeader = malloc(extendedHeaderLength);
-                fread(extendedHeader, 1, extendedHeaderLength, fp);
+                char *pExendedHeader = malloc(extendedHeaderLength);
+                fread(pExendedHeader, 1, extendedHeaderLength, fp);
 
                 //get size from extended header
-                long size = getSizeFromExtendedHeader(extendedHeader, extendedHeaderLength);
+                long size = getSizeFromExtendedHeader(pExendedHeader, extendedHeaderLength);
 
                 printf("\n NEXT HEADER: \n");
                 long jump2 = roundUp(size);
@@ -268,7 +268,7 @@ void parseTarForPath(FILE *fp, char path[]) {
     char header[512];
 
     //read files
-    struct posix_header fileHeader;
+    struct posix_header posixFileHeader;
     while (!feof(fp) && numberOfEmpty < 2) {
         fread (header,1,512,fp);
         //test if header consists of 0 only. if two zero blocks occure, end the file reading.
@@ -281,12 +281,12 @@ void parseTarForPath(FILE *fp, char path[]) {
         }
         if (!empty) {
             numberOfEmpty = 0;
-            fileHeader = (struct posix_header){ 0 };
-            fillStruct(header, &fileHeader, storedName, storedNameSize);
+            posixFileHeader = (struct posix_header){ 0 };
+            fillStruct(header, &posixFileHeader, storedName, storedNameSize);
             storedNameSize = 0;
-            if (fileHeader.typeflag == '0') {
+            if (posixFileHeader.typeflag == '0') {
                 //calculate filelength
-                long jump = octalToDecimal(fileHeader.size, 12);
+                long jump = octalToDecimal(posixFileHeader.size, 12);
                 //convert length in bytes from octal to decimal.
                 long m = jump % 512;
                 if (m != 0) {
@@ -295,26 +295,26 @@ void parseTarForPath(FILE *fp, char path[]) {
 
                 //test if file is the file searched after
                 int correctPath = 1;
-                for (int i = 0; i < strlen(fileHeader.fullName); i++) {
+                for (int i = 0; i < strlen(posixFileHeader.fullName); i++) {
                     //for security check if fileHeader.name is longer than path.
-                    if (fileHeader.fullName[i] != path[i]) {
+                    if (posixFileHeader.fullName[i] != path[i]) {
                         correctPath = 0;
                         break;
                     }
                 }
                 if (correctPath) {
                     //if path continues deeper in. TODO check for ".tar" ending
-                    if (strlen(fileHeader.fullName) < strlen(path)) {
+                    if (strlen(posixFileHeader.fullName) < strlen(path)) {
                         //calculate new path.
                         size_t pathl = strlen(path);
-                        size_t pathn = strlen(fileHeader.fullName);
+                        size_t pathn = strlen(posixFileHeader.fullName);
                         char *newpath = malloc(pathl - pathn);
                         memset(newpath, '\0', pathl - pathn);
                         strncpy(newpath, path + pathn + 1, pathl - pathn - 1);
                         parseTarForPath(fp, newpath);
 
                     } else { //the requested file is found, print the result:
-                        long fileSize = octalToDecimal(fileHeader.size, 12);
+                        long fileSize = octalToDecimal(posixFileHeader.size, 12);
                         jump -= fileSize;
                         while (fileSize > 512) {
                             fread (header,1,512,fp);
@@ -332,36 +332,36 @@ void parseTarForPath(FILE *fp, char path[]) {
                 } else {
                     fseek(fp, jump, SEEK_CUR);
                 }
-            } else if (fileHeader.typeflag == '5') {
+            } else if (posixFileHeader.typeflag == '5') {
                 // TODO: handle flag or remove
-            } else if (fileHeader.typeflag == 'x') {
-                long extendedHeaderLength = roundUp(octalToDecimal(fileHeader.size, 12));
-                char *extendedHeader = malloc(extendedHeaderLength);
-                fread(extendedHeader, 1, extendedHeaderLength, fp);
+            } else if (posixFileHeader.typeflag == 'x') {
+                long extendedHeaderLength = roundUp(octalToDecimal(posixFileHeader.size, 12));
+                char *pExendedHeader = malloc(extendedHeaderLength);
+                fread(pExendedHeader, 1, extendedHeaderLength, fp);
 
                 //get size from extended header
-                long size = getSizeFromExtendedHeader(extendedHeader, extendedHeaderLength);
+                long size = getSizeFromExtendedHeader(pExendedHeader, extendedHeaderLength);
                 long jump = roundUp(size);
                 //read huge file header
                 fread (header,1,512,fp);
-                fileHeader = (struct posix_header){ 0 };
-                fillStruct(header, &fileHeader, storedName, storedNameSize);
+                posixFileHeader = (struct posix_header){ 0 };
+                fillStruct(header, &posixFileHeader, storedName, storedNameSize);
                 storedNameSize = 0;
                 int correctPath = 1;
-                for (int i = 0; i < strlen(fileHeader.fullName); i++) {
+                for (int i = 0; i < strlen(posixFileHeader.fullName); i++) {
                     //for security check if fileHeader.name is longer than path.
-                    if (fileHeader.fullName[i] != path[i]) {
+                    if (posixFileHeader.fullName[i] != path[i]) {
                         correctPath = 0;
                         break;
                     }
                 }
                 if (correctPath) {
                     //if path continues deeper in. TODO check for ".tar" ending
-                    if (strlen(fileHeader.fullName) < strlen(path)) {
+                    if (strlen(posixFileHeader.fullName) < strlen(path)) {
                         //calculate new path.
                         // ./(path - fileheader.name)
                         size_t pathl = strlen(path);
-                        size_t pathn = strlen(fileHeader.fullName);
+                        size_t pathn = strlen(posixFileHeader.fullName);
                         char *newpath = malloc(pathl - pathn);
                         memset(newpath, '\0', pathl - pathn);
                         strncpy(newpath, path + pathn + 1, pathl - pathn - 1);
@@ -381,14 +381,14 @@ void parseTarForPath(FILE *fp, char path[]) {
                 } else {
                     fseek(fp, jump, SEEK_CUR);
                 }
-            } else if (fileHeader.typeflag == 'L') {
+            } else if (posixFileHeader.typeflag == 'L') {
                 // read next block and check it's content
-                storedNameSize = octalToDecimal(fileHeader.size, 12);
+                storedNameSize = octalToDecimal(posixFileHeader.size, 12);
                 int rest = 512 - (storedNameSize % 512);
                 fread (storedName,1,storedNameSize,fp);
                 fseek(fp, rest, SEEK_CUR);
             } else {
-              printf("unknown flag: %c\n", fileHeader.typeflag);
+              printf("unknown flag: %c\n", posixFileHeader.typeflag);
             }
         } else {
             numberOfEmpty++;
