@@ -175,32 +175,32 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 //calculate filelength
                 long jump = roundUp(octalToDecimal(posixFileHeader.size, 12));
                 //indent the file list:
-                char *indent = malloc(indentation*4);
-                memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
+                char *pIndentStr = malloc(indentation*4);
+                memset(pIndentStr, ' ', indentation*4);
+                printf("%s%s%s\n", pIndentStr, pPath, posixFileHeader.fullName);
                 //if file ends with .tar -> list files inside it
-                char *dot = strrchr(posixFileHeader.name, '.');
-                if (dot && !strcmp(dot, ".tar")) {
+                char *pDot = strrchr(posixFileHeader.name, '.');
+                if (pDot && !strcmp(pDot, ".tar")) {
                     //get the current position to return to after the inner tar file is read
                     long pos = ftell(fp);
                     //calculate next path
-                    char *nextPPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
+                    char *pNextPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
 
-                    strncpy(nextPPath, pPath, strlen(pPath));
-                    strncpy(nextPPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
-                    strcpy(nextPPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
-                    listTarFile(fp, indentation+1, nextPPath);
+                    strncpy(pNextPath, pPath, strlen(pPath));
+                    strncpy(pNextPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
+                    strcpy(pNextPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
+                    listTarFile(fp, indentation+1, pNextPath);
                     fseek(fp, pos+jump, SEEK_SET);
-                    free(nextPPath);
-                    nextPPath = NULL;
+                    free(pNextPath);
+                    pNextPath = NULL;
                 } else {
                     if (jump > 0)
                         fseek(fp, jump, SEEK_CUR);
                 }
             } else if (posixFileHeader.typeflag == '5') {
-                char *indent = malloc(indentation*4);
-                memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
+                char *pIndentStr = malloc(indentation*4);
+                memset(pIndentStr, ' ', indentation*4);
+                printf("%s%s%s\n", pIndentStr, pPath, posixFileHeader.fullName);
             } else if (posixFileHeader.typeflag == 'x') {
                 long extendedHeaderLength = roundUp(octalToDecimal(posixFileHeader.size, 12));
                 char *extendedHeader = malloc(extendedHeaderLength);
@@ -218,26 +218,26 @@ void listTarFile(FILE *fp, int indentation, char *pPath) {
                 storedNameSize = 0;
                 printStruct(&posixFileHeader);
 
-                char *indent = malloc(indentation*4);
-                memset(indent, ' ', indentation*4);
-                printf("%s%s%s\n", indent, pPath, posixFileHeader.fullName);
+                char *pIndentStr = malloc(indentation*4);
+                memset(pIndentStr, ' ', indentation*4);
+                printf("%s%s%s\n", pIndentStr, pPath, posixFileHeader.fullName);
 
                 // Case file
                 // If file ends with .tar -> list files inside it
-                char *dot = strrchr(posixFileHeader.name, '.');
-                if (dot && !strcmp(dot, ".tar")) {
+                char *pDot = strrchr(posixFileHeader.name, '.');
+                if (pDot && !strcmp(pDot, ".tar")) {
                     // Odd hack with seeking, slows down a little but works.
                     long pos = ftell(fp);
                     // Calculate next ppath
-                    char *nextPPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
+                    char *pNextPath = malloc(strlen(pPath) + strlen(posixFileHeader.fullName) + 1);
 
-                    strncpy(nextPPath, pPath, strlen(pPath));
-                    strncpy(nextPPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
-                    strcpy(nextPPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
-                    listTarFile(fp, indentation+1, nextPPath);
+                    strncpy(pNextPath, pPath, strlen(pPath));
+                    strncpy(pNextPath+strlen(pPath), posixFileHeader.fullName, strlen(posixFileHeader.fullName));
+                    strcpy(pNextPath+strlen(pPath)+strlen(posixFileHeader.fullName), "/");
+                    listTarFile(fp, indentation+1, pNextPath);
                     fseek(fp, pos+jump2, SEEK_SET);
-                    free(nextPPath);
-                    nextPPath = NULL;
+                    free(pNextPath);
+                    pNextPath = NULL;
                 } else {
                     if (jump2 > 0)
                         fseek(fp, jump2, SEEK_CUR);
