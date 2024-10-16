@@ -106,40 +106,40 @@ long roundUp(long num) {
     return num;
 }
 
-int findNextChar(char *haystack, int length, char needle, int offset) {
+int findNextChar(char *pHaystack, int length, char needle, int offset) {
     for (int i = offset; i < length; i++) {
-        if (haystack[i] == needle) {
+        if (pHaystack[i] == needle) {
             return i;
         }
     }
     return -1;
 }
 
-long longFromCharArray(char *array, int length) {
+long longFromCharArray(char *pArray, int length) {
     long res = 0;
     long factor = 1;
-    for (int i = length-1; i >= 0; i--) {
-        res += factor * (long)(array[i] - '0');
+    for (int i = length - 1; i >= 0; i--) {
+        res += factor * (long)(pArray[i] - '0');
         factor *= 10;
     }
     return res;
 }
 
-long getSizeFromExtendedHeader(char *header, int length) {
+long getSizeFromExtendedHeader(char *pHeader, int length) {
     int space, equalSign, newline;
     int offset = 0;
 
     while (offset < length) {
-        space = findNextChar(header+offset, length, ' ', 0);
-        equalSign = findNextChar(header+offset, length, '=', 0);
-        newline = findNextChar(header+offset, length, '\n', 1);
+        space = findNextChar(pHeader + offset, length, ' ', 0);
+        equalSign = findNextChar(pHeader + offset, length, '=', 0);
+        newline = findNextChar(pHeader + offset, length, '\n', 1);
         if (space == -1 || equalSign == -1 || newline == -1)
             return -1;
-        //test if key is "size"
-        if (*(header+offset+space+1) == 's' && *(header+offset+space+2) == 'i' && *(header+offset+space+3) == 'z' && *(header+offset+space+4) == 'e') {
-            return longFromCharArray(header+offset+equalSign+1, newline-1-equalSign);
+        // Test if key is "size"
+        if (*(pHeader + offset + space + 1) == 's' && *(pHeader + offset+space+2) == 'i' && *(pHeader + offset + space + 3) == 'z' && *(pHeader + offset + space + 4) == 'e') {
+            return longFromCharArray(pHeader + offset + equalSign + 1, newline - 1 - equalSign);
         }
-        //goto next attribute
+        // Goto next attribute
         offset += newline;
     }
     return -1;
