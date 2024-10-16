@@ -44,7 +44,7 @@ long octalToDecimal(char *pOctal, int size) {
 
 void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredName, int storedNameSize) {
     int offset = 0;
-    if (pPosixHeader[0] == '.' && pHeader[1] == '/')
+    if (pHeader[0] == '.' && pHeader[1] == '/')
         offset = 2;
     else if (pHeader[0] == '/')
         offset = 1;
@@ -65,7 +65,7 @@ void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredN
     strncpy(pPosixHeader->devminor, pHeader + 337, 8);
     strncpy(pPosixHeader->prefix, pHeader + 345, 155);
     if (storedNameSize > 0) {
-      strncpy(pPosixHeader->fullName, storedName, storedNameSize);
+      strncpy(pPosixHeader->fullName, pStoredName, storedNameSize);
     } else {
       int offset2 = 0;
       if (strlen(pPosixHeader->prefix) > 0) {
@@ -74,7 +74,7 @@ void fillStruct(char *pHeader, struct posix_header *pPosixHeader, char *pStoredN
           strcpy(pPosixHeader->fullName + offset2, "/");
           offset2 += 1;
       }
-      strncpy(pPosixHeader->fullName + offset2, pHeader + offset, strlen(pHeader->name));
+      strncpy(pPosixHeader->fullName + offset2, pHeader + offset, strlen(pPosixHeader->name));
     }
 }
 
@@ -310,7 +310,7 @@ void parseTarForPath(FILE *fp, char path[]) {
                         size_t pathn = strlen(posixFileHeader.fullName);
                         char *pNewPath = malloc(pathl - pathn);
                         memset(pNewPath, '\0', pathl - pathn);
-                        strncpy(pNewpath, path + pathn + 1, pathl - pathn - 1);
+                        strncpy(pNewPath, path + pathn + 1, pathl - pathn - 1);
                         parseTarForPath(fp, pNewPath);
 
                     } else { //the requested file is found, print the result:
