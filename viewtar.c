@@ -308,10 +308,10 @@ void parseTarForPath(FILE *fp, char path[]) {
                         //calculate new path.
                         size_t pathl = strlen(path);
                         size_t pathn = strlen(posixFileHeader.fullName);
-                        char *newpath = malloc(pathl - pathn);
-                        memset(newpath, '\0', pathl - pathn);
-                        strncpy(newpath, path + pathn + 1, pathl - pathn - 1);
-                        parseTarForPath(fp, newpath);
+                        char *pNewPath = malloc(pathl - pathn);
+                        memset(pNewPath, '\0', pathl - pathn);
+                        strncpy(pNewpath, path + pathn + 1, pathl - pathn - 1);
+                        parseTarForPath(fp, pNewPath);
 
                     } else { //the requested file is found, print the result:
                         long fileSize = octalToDecimal(posixFileHeader.size, 12);
