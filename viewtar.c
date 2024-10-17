@@ -187,8 +187,8 @@ void listTarFile(FILE *fp, unsigned int indentation, char *pPath) {
             if (posixFileHeader.typeflag == '0') {
                 //calculate filelength
 
-                long jump = roundUp(octalToDecimal(fileHeader.size, 12));
-                printPath(indentation * 4, pPath, fileHeader.fullName);
+                long jump = roundUp(octalToDecimal(posixFileHeader.size, 12));
+                printPath(indentation * 4, pPath, posixFileHeader.fullName);
 
                 //if file ends with .tar -> list files inside it
                 char *pDot = strrchr(posixFileHeader.name, '.');
