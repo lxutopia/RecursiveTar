@@ -10,7 +10,7 @@ The first path is the path of the .tar archive file to be read. If only the firs
 The tool does not support compressed tar files
 
 ## Support
-Contact simon@axenu.com or simon.nilsson@sydarkivera.se
+Create a issue for support: https://github.com/Sydarkivera/RecursiveTar/issues
 
 ## License
 This project is licensed under the terms of the GNU (General Public License)
