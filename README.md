@@ -8,6 +8,7 @@ The first path is the path of the .tar archive file to be read. If only the firs
 
 ## Limitations
 The tool does not support compressed tar files
+TODO nåt.
 
 ## Support
 Create a issue for support: https://github.com/Sydarkivera/RecursiveTar/issues
